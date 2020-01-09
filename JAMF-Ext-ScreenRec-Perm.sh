@@ -9,6 +9,11 @@
 #		Then check the SCC Database to see if the specified Application
 #		Is enabled for Screen Recording
 #
+#	- For this to function Correctly, Config Profiles will be needed to
+#		grant JAMF further permissions to access the TCC Database
+#		- At present this seems to be sending Apple Events to System Events
+#			and Full Disk Access, but this may possibly be able to be reduced a little.
+#
 ###############################################################################################################################################
 #
 # HISTORY
