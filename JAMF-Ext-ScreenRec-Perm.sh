@@ -2,6 +2,9 @@
 #
 ###############################################################################################################################################
 #
+#	JAMF-Ext-ScreenRec-Perm
+#	https://github.com/Headbolt/JAMF-Ext-ScreenRec-Perm
+#
 #   This Script is designed for use in JAMF as an Extension Attribute
 #
 #   - This script will ...
