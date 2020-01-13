@@ -2,9 +2,6 @@
 #
 ###############################################################################################################################################
 #
-#	JAMF-Ext-ScreenRec-Perm
-#	https://github.com/Headbolt/JAMF-Ext-ScreenRec-Perm
-#
 #   This Script is designed for use in JAMF as an Extension Attribute
 #
 #   - This script will ...
@@ -21,7 +18,7 @@
 #
 # HISTORY
 #
-#   Version: 1.2 - 10/01/2020
+#   Version: 1.3 - 13/01/2020
 #
 #   - 06/01/2020 - V1.0 - Created by Headbolt
 #   - 09/01/2020 - V1.1 - Updated by Headbolt
@@ -32,6 +29,9 @@
 #								On execution the Value is read in, and if no user is logged in,
 #								resulting in and error, the read in Value is Output to keep from
 #								having Error values or blank entries written
+#   - 13/01/2020 - V1.3 - Updated by Headbolt
+#							Now allows for multiple entries by the target app, by filtering first
+#								for kTCCServiceScreenCapture and then the App Name
 #
 ###############################################################################################################################################
 #
@@ -78,12 +78,11 @@ if [[ "$CATplus" == "YES" ]]
 	then
 		if [[ $User != "root" ]] # Check if a user is logged in, if not this can result in errors
 			then
-				App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i $AppIDstring) # Find the line for the App
+				App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i kTCCServiceScreenCapture | grep -i $AppIDstring) # Find the line for the App
 				AccErr=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' 2>&1 | grep unable) # Check for permissions error
-				read -ra AppStatusArray <<< "$App" # Read In the Array
 				#
 				IFS='|' # Internal Field Seperator Delimiter is set to Pipe (|)
-				AppStatus=$(echo $AppStatusArray | awk '{ print $4 }')
+				AppStatus=$(echo $App | awk '{ print $4 }')
 				unset IFS
 				#
 				if [[ "$AccErr" == "" ]] # Check if there was a permissions error accessing the TCC.db file
