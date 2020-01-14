@@ -18,7 +18,7 @@
 #
 # HISTORY
 #
-#   Version: 1.3 - 13/01/2020
+#   Version: 1.4 - 14/01/2020
 #
 #   - 06/01/2020 - V1.0 - Created by Headbolt
 #   - 09/01/2020 - V1.1 - Updated by Headbolt
@@ -32,6 +32,10 @@
 #   - 13/01/2020 - V1.3 - Updated by Headbolt
 #							Now allows for multiple entries by the target app, by filtering first
 #								for kTCCServiceScreenCapture and then the App Name
+#   - 14/01/2020 - V1.4 - Updated by Headbolt
+# 							Added a safeguard against a log Error message as an output.
+#								When the plist or plist pair does not exist, the error expected would be.
+#								"The domain/default pair of (/var/JAMF/ScreenRecording-Perms.plist, $AppIDstring) does not exist"
 #
 ###############################################################################################################################################
 #
@@ -45,11 +49,11 @@ osMajor=$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. '{print $1}' )
 osMinor=$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. '{print $2}' )
 osPatch=$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. '{print $3}' )
 #
-AppIDstring=ScreenConnect # Grab the identifier to use when searching the TCC Database from JAMF variable #4 eg ScreenConnect
+AppIDstring=ScreenConnect # Grab the identifier to use when searching the TCC Database.
 # Note : this can usually be found by manually allowing on a test machine and then running the below command
 # sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access'
 #
-CurrentAppPerms=$(defaults read /var/JAMF/ScreenRecording-Perms.plist $AppIDstring 2>&1) # Grab last written value
+CurrentAppPerms=$(sudo defaults read /var/JAMF/ScreenRecording-Perms.plist $AppIDstring 2>&1) # Grab last written value
 #
 ###############################################################################################################################################
 #
@@ -103,11 +107,19 @@ if [[ "$CATplus" == "YES" ]]
 				fi
 				#
 				/bin/echo "<result>$RESULT</result>" # Write Result out
-				defaults write /var/JAMF/ScreenRecording-Perms.plist $AppIDstring -string "$RESULT" # Write Result into PLIST
+				sudo defaults write /var/JAMF/ScreenRecording-Perms.plist $AppIDstring -string "$RESULT" # Write Result into PLIST
 				#
 			else
-				/bin/echo "<result>$CurrentAppPerms</result>" # If no User logged in, re-write last known value
-		fi
+				# Now we safeguard against a log Error message as an output.
+				# When the plist or plist pair does not exist, the error expected would be.
+				# "The domain/default pair of (/var/JAMF/ScreenRecording-Perms.plist, $AppIDstring) does not exist"
+				if [[ "$CurrentAppPerms" = *domain/default* ]]
+					then
+						/bin/echo "<result>NOT PRESENT</result>"
+					else 
+						/bin/echo "<result>$CurrentAppPerms</result>" # If no User logged in, re-write last known value
+				fi
+        fi
 	else
 		RESULT="OS is Lower than Catalina"
 		/bin/echo "<result>$RESULT</result>" # Write Result out
