@@ -2,6 +2,11 @@
 #
 ###############################################################################################################################################
 #
+# ABOUT THIS PROGRAM
+#
+#	JAMF-Ext-ScreenRec-Perm.sh
+#	https://github.com/Headbolt/JAMF-Ext-ScreenRec-Perm
+#
 #   This Script is designed for use in JAMF as an Extension Attribute
 #
 #   - This script will ...
@@ -18,7 +23,7 @@
 #
 # HISTORY
 #
-#   Version: 1.4 - 14/01/2020
+#   Version: 1.5 - 25/11/2020
 #
 #   - 06/01/2020 - V1.0 - Created by Headbolt
 #   - 09/01/2020 - V1.1 - Updated by Headbolt
@@ -36,6 +41,9 @@
 # 							Added a safeguard against a log Error message as an output.
 #								When the plist or plist pair does not exist, the error expected would be.
 #								"The domain/default pair of (/var/JAMF/ScreenRecording-Perms.plist, $AppIDstring) does not exist"
+#   - 25/11/2020 - V1.5 - Updated by Headbolt
+# 							Added a check incase BASH not avaialable (MacOS 10.15.7 and above) and shell drops back to ZSH
+#								In Which Case an extra command is needed to utilise the Internal Field Separator
 #
 ###############################################################################################################################################
 #
@@ -86,12 +94,16 @@ if [[ "$CATplus" == "YES" ]]
 				AccErr=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' 2>&1 | grep unable) # Check for permissions error
 				#
 				IFS='|' # Internal Field Seperator Delimiter is set to Pipe (|)
+				if [ $ZSH_VERSION ]
+					then
+						setopt sh_word_split
+				fi
 				AppStatus=$(echo $App | awk '{ print $4 }')
 				unset IFS
 				#
 				if [[ "$AccErr" == "" ]] # Check if there was a permissions error accessing the TCC.db file
-					then 
-						if [[ $AppStatus == 1 ]] # Check if the app has Screen Recording permission enabled
+					then
+						if [[ $AppStatus -gt "0" ]] # Check if the app has Screen Recording permission enabled
 							then
 								RESULT="SET"
 							else
